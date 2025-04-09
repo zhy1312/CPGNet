@@ -1,0 +1,28 @@
+MAX_SIZE: 15
+dataset_dir: data/YNLUAD
+save_dir: graphs
+label_dir: label/YNLUAD_label.csv
+cuda: "0,1,2"
+seed: 3407
+data_processing:
+  normalizer: acd
+  V: "V1"
+  superpixel_size: 20000
+  compactness: 10
+  min_size_factor: 0.5
+  max_size_factor: 1
+  filter_params:
+    a_h: 1
+    a_t: 50
+    close: 4
+    max_n_holes: 8
+    mthresh: 7
+    sthresh: 20
+    sthresh_up: 255
+
+feature_extractor:
+  model_name: uni
+  batch_size: 64
+  patch_size: 144
+  resize_size: 224
+  fill_value: 255
