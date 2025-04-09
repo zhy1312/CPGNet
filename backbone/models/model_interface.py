@@ -4,16 +4,14 @@ import importlib
 import torch.nn as nn
 from torch.nn import functional as F
 import torch.optim.lr_scheduler as lrs
-import numpy as np
 import pytorch_lightning as pl
-from sklearn import metrics
 from utils.evaluate import evaluation
 from .optimizer.lookahead import Lookahead
 from .loss.asl import *
 from .loss.dbl import *
+
 import os
 from utils.h5 import save_hdf5
-import pandas as pd
 
 # from .loss.Focal_Loss import *
 
@@ -21,7 +19,6 @@ import pandas as pd
 class MInterface(pl.LightningModule):
     def __init__(self, **kwargs):
         super().__init__()
-        # save_hyperparameters：储存init中输入的所有超参。后续访问可以由self.hparams.argX方式进行。同时，超参表也会被存到文件中。
         self.save_hyperparameters()
         self.load_model()
         self.configure_loss()
@@ -43,12 +40,10 @@ class MInterface(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         *img, label, filename = batch
         out = self(img)
-
         loss = self.loss_function(out, label)
         out_sig = F.sigmoid(out.detach())
         self.tra_outs.append(out_sig)
         self.tra_labels.append(label)
-
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
 
@@ -59,7 +54,6 @@ class MInterface(pl.LightningModule):
         out_sig = F.sigmoid(out.detach())
         self.val_outs.append(out_sig)
         self.val_labels.append(label)
-
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
@@ -67,11 +61,6 @@ class MInterface(pl.LightningModule):
         *img, label, filename = batch
         out = self(img)
         loss = self.loss_function(out, label)
-
-        # heatmap_result["filename"] = np.array(filename,dtype=str)
-        # heatmap_result["label"] = label.cpu().numpy()
-        # heatmap_result["out"] = out.cpu().numpy()
-        # save_hdf5(os.path.join(self.save_path,filename[0]+".h5"), heatmap_result,mode="w")
         out_sig = F.sigmoid(out.detach())
         self.test_outs.append(out_sig)
         self.test_labels.append(label)
@@ -82,8 +71,6 @@ class MInterface(pl.LightningModule):
         *img, label, filename = batch
         out, heatmap_result = self(img)
         loss = self.loss_function(out, label)
-
-        # heatmap_result["filename"] = np.array(filename,dtype=str)
         heatmap_result["label"] = label.cpu().numpy()
         heatmap_result["out"] = out.cpu().numpy()
         save_hdf5(
@@ -126,8 +113,7 @@ class MInterface(pl.LightningModule):
         labels = torch.cat(self.test_labels).cpu().numpy()
         self.test_outs.clear()
         self.test_labels.clear()
-        # np.save(os.path.join(self.save_path, "outs.npy"), outs)
-        # np.save(os.path.join(self.save_path, "labels.npy"), labels)
+
         eval = evaluation(outs, labels)
         e = {
             "macroAP": eval[0],

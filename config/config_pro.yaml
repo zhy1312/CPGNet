@@ -1,7 +1,6 @@
 MAX_SIZE: 15
-dataset_dir: data/YNLUAD
+dataset: YNLUAD
 save_dir: graphs
-label_dir: label/YNLUAD_label.csv
 cuda: "0,1,2"
 seed: 3407
 data_processing:

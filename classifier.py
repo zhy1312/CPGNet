@@ -9,8 +9,8 @@ from pytorch_lightning import Trainer
 import pytorch_lightning.callbacks as plc
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from CPGNet.models import MInterface
-from CPGNet.dataloaders import DInterface
+from backbone.models import MInterface
+from backbone.dataloaders import DInterface
 from utils.load_best_model import load_model_path_by_args
 from utils.set_seeds import set_seed
 

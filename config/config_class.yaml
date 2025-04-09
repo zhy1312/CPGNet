@@ -7,17 +7,16 @@ lr: 0.0001
 
 mode: train
 
+dataset: YNLUAD
 split: label/YNLUAD-split
-dataset: YNLUAD_data
-data_dir: graphs/YNLUAD/edata-graph
 label_file: label/YNLUAD_label.csv
+data_dir: graphs/YNLUAD/edata-graph
 text_file: graphs/YNLUAD/text_embedings.pkl
 
 model_name: gps_net
 loss: asl 
 optimizer: adam
 weight_decay: 0.0001
-accumulate_grad_batches: 1
 
 log_dir: logs
 log_name: parameter

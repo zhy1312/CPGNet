@@ -4,7 +4,7 @@ import torch.nn.init as init
 import math
 
 
-class GpsNet(nn.Module):
+class CpsNet(nn.Module):
     def __init__(
         self,
         feature_dim=1026,
@@ -19,9 +19,9 @@ class GpsNet(nn.Module):
         pooling_type="avg",
         heatmap=False,
     ):
-        super(GpsNet, self).__init__()
+        super(CpsNet, self).__init__()
         self.heatmap = heatmap
-        self.gps = GraphGPSModel(
+        self.cps = GraphGPSModel(
             feature_dim=feature_dim,
             out_size=out_dim,
             hidden_size=in_dim,
@@ -35,9 +35,9 @@ class GpsNet(nn.Module):
             heatmap=heatmap,
         )
         # 对self.gps每层进行初始化
-        for layer in self.gps.layers:
+        for layer in self.cps.layers:
             if isinstance(layer, nn.Linear):
                 init.kaiming_uniform_(layer.weight, a=math.sqrt(5))
 
     def forward(self, input):
-        return self.gps(input)
+        return self.cps(input)

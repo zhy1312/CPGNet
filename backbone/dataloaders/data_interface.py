@@ -17,25 +17,13 @@ class DInterface(pl.LightningDataModule):
         self.load_data_module()
 
     def setup(self, stage=None):
-        # Assign train/val datasets for use in dataloaders
         if stage == "fit":
             self.trainset = self.instancialize(train="train")
             self.valset = self.instancialize(train="val")
-
-        # Assign test dataset for use in dataloader(s)
         if stage == "test":
             self.testset = self.instancialize(train="test")
         if stage == "predict":
             self.predictset = self.instancialize(train="predict")
-        # # If you need to balance your data using Pytorch Sampler,
-        # # please uncomment the following lines.
-
-        # with open('./data/ref/samples_weight.pkl', 'rb') as f:
-        #     self.sample_weight = pkl.load(f)
-
-    # def train_dataloader(self):
-    #     sampler = WeightedRandomSampler(self.sample_weight, len(self.trainset)*20)
-    #     return DataLoader(self.trainset, batch_size=self.batch_size, num_workers=self.num_workers, sampler = sampler)
 
     def train_dataloader(self):
         return GraphDataLoader(
@@ -60,6 +48,7 @@ class DInterface(pl.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
         )
+
     def predict_dataloader(self):
         return GraphDataLoader(
             self.predictset,
@@ -67,8 +56,9 @@ class DInterface(pl.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
         )
+
     def load_data_module(self):
-        name = self.dataset
+        name = "dataset"
         # Change the `snake_case.py` file name to `CamelCase` class name.
         # Please always name your model file name as `snake_case.py` and
         # class name corresponding `CamelCase`.

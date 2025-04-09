@@ -30,23 +30,21 @@ os.environ["CUDA_VISIBLE_DEVICES"] = config.cuda
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Loading data
-datasets = [
-    os.path.join(config.dataset_dir, path) for path in os.listdir(config.dataset_dir)
-]
-_, dataset_name = os.path.split(config.dataset_dir)
+dataset_dir = os.path.join("data", config.dataset)
+dataset_list = [os.path.join(dataset_dir, path) for path in os.listdir(dataset_dir)]
 
-feature_path = os.path.join(config.save_dir, dataset_name, "features")
+feature_path = os.path.join(config.save_dir, config.dataset, "features")
 if not os.path.exists(feature_path):
     os.makedirs(feature_path)
-superpixels_path = os.path.join(config.save_dir, dataset_name, "superpixels")
+superpixels_path = os.path.join(config.save_dir, config.dataset, "superpixels")
 if not os.path.exists(superpixels_path):
     os.makedirs(superpixels_path)
 label = pd.read_csv(config.label_dir)
 
 # Image Processing
-print(f"The {dataset_name} is currently being processed...")
-datasets_len = len(datasets)
-for i, image_path in enumerate(datasets):
+print(f"The {config.dataset} is currently being processed...")
+datasets_len = len(dataset_list)
+for i, image_path in enumerate(dataset_list):
     _, image_name = os.path.split(image_path)
     image_name, image_type = image_name.split(".")
     print(f"{i+1}/{datasets_len}:{image_name}", end="\t")
