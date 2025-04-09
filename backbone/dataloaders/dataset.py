@@ -5,6 +5,7 @@ import pickle as pkl
 import torch.utils.data as data
 import pandas as pd
 from dgl.data.utils import load_graphs
+from category_prompt import createprompt
 
 
 class Dataset(data.Dataset):
@@ -19,14 +20,18 @@ class Dataset(data.Dataset):
         self.__dict__.update(locals())
         data_dir = os.path.join("graphs", self.dataset, "features")
         label_file = os.path.join("labels", self.dataset)
+        text_file = os.path.join("labels", self.dataset, "text_embedings.pkl")
         self.file_list = [os.path.join(data_dir, path) for path in os.listdir(data_dir)]
         self.label_dict = pd.read_csv(os.path.join(label_file, "label.csv"))
-        with open(os.path.join(label_file, "text_embedings.pkl"), "rb") as f:
-            self.text_feature = pkl.load(f)
 
+        if not os.path.exists(text_file):
+            createprompt(self.dataset, text_file)
+        with open(text_file, "rb") as f:
+            self.text_feature = pkl.load(f)
         self.data_dir = data_dir
         self.label_file = label_file
         self.check_files()
+
     def check_files(self):
         fl_train = (
             pd.read_csv(os.path.join(self.label_file, "train.txt"), header=None)
