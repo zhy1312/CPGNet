@@ -1,4 +1,4 @@
-MAX_SIZE: 15
+MAX_SIZE: 1
 dataset: YNLUAD
 save_dir: graphs
 cuda: "0,1,2"
@@ -25,3 +25,4 @@ feature_extractor:
   patch_size: 144
   resize_size: 224
   fill_value: 255
+k: 20

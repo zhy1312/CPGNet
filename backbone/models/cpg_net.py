@@ -1,10 +1,10 @@
-from .GraphGPS.GraphGPS_model import GraphGPSModel
+from .GLGFI.GLGFI_Module import GLGFIModule
 import torch.nn as nn
 import torch.nn.init as init
 import math
 
 
-class CpsNet(nn.Module):
+class CpgNet(nn.Module):
     def __init__(
         self,
         feature_dim=1026,
@@ -19,9 +19,9 @@ class CpsNet(nn.Module):
         pooling_type="avg",
         heatmap=False,
     ):
-        super(CpsNet, self).__init__()
+        super(CpgNet, self).__init__()
         self.heatmap = heatmap
-        self.cps = GraphGPSModel(
+        self.cpgnet = GLGFIModule(
             feature_dim=feature_dim,
             out_size=out_dim,
             hidden_size=in_dim,
@@ -35,9 +35,9 @@ class CpsNet(nn.Module):
             heatmap=heatmap,
         )
         # 对self.gps每层进行初始化
-        for layer in self.cps.layers:
+        for layer in self.cpgnet.layers:
             if isinstance(layer, nn.Linear):
                 init.kaiming_uniform_(layer.weight, a=math.sqrt(5))
 
     def forward(self, input):
-        return self.cps(input)
+        return self.cpgnet(input)

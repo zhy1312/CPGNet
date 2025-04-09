@@ -3,7 +3,9 @@ from skimage.segmentation import slic
 import cv2
 from PIL import Image
 import os
-
+from scipy.spatial.distance import cosine
+import gc
+import torch
 
 class processing:
     def Superpixel(
@@ -23,15 +25,15 @@ class processing:
             nr_superpixels = nr_superpixels
         elif area is None:
             nr_superpixels = int(img.size[0] * img.size[1] / superpixel_size)
-            return slic(
-                img,
-                n_segments=nr_superpixels,
-                compactness=compactness,
-                mask=mask,
-                start_label=1,
-                min_size_factor=min_size_factor,
-                max_size_factor=max_size_factor,
-            )
+        return slic(
+            img,
+            n_segments=nr_superpixels,
+            compactness=compactness,
+            mask=mask,
+            start_label=1,
+            min_size_factor=min_size_factor,
+            max_size_factor=max_size_factor,
+        )
 
     def Imageotsu(
         self,
@@ -174,3 +176,59 @@ class processing:
             "hole_area": hole_area,
             "hole_len": sum([len(hole_contour) for hole_contour in hole_contours]),
         }
+    def add_edge(self, g, k=20):
+        def random_walk_pe(g, k):
+            A = g.adjacency_matrix(scipy_fmt="csr")  # adjacency matrix
+            RW = torch.tensor(A / (A.sum(1) + 1e-30)).cuda()  # 1-step transition probability
+            # Iterate for k steps
+            PE = [RW.diagonal()]
+            RW_power = RW
+            for _ in range(k - 1):
+                RW_power = RW_power @ RW
+                PE.append(RW_power.diagonal())
+            RPE = torch.stack(PE, dim=-1).float()
+            del A, RW, PE, RW_power
+            torch.cuda.empty_cache()
+            gc.collect()
+            return RPE.cpu()
+
+
+        def random_walk_pe_cpu(g, k):
+            A = g.adj_external(scipy_fmt="csr")  # adjacency matrix
+            RW = torch.tensor(A / (A.sum(1) + 1e-30))  # 1-step transition probability
+            # Iterate for k steps
+            PE = [RW.diagonal()]
+            RW_power = RW
+            for _ in range(k - 1):
+                RW_power = RW_power @ RW
+                PE.append(RW_power.diagonal())
+            RPE = torch.stack(PE, dim=-1).float()
+            del A, RW, PE, RW_power
+            torch.cuda.empty_cache()
+            gc.collect()
+            return RPE
+
+        start, end = g.edges()
+        feat = g.ndata["feat"]
+        centroid = g.ndata["centroid"]
+        # Create edge types
+        edge_sim = []
+        edge_Dist = []
+        for idx_a, idx_b in zip(start, end):
+            corr = 1 - cosine(feat[idx_a], feat[idx_b])
+            a = centroid[idx_a]
+            b = centroid[idx_b]
+            edge_sim.append([torch.tensor(corr, dtype=torch.float)])
+            edge_Dist.append([torch.sqrt(torch.pow(a - b, 2).sum())])
+        edge_sim = torch.tensor(edge_sim)
+        edge_Dist = torch.tensor(edge_Dist)
+        efeat = torch.cat([edge_sim, edge_Dist], dim=1)
+        mean = torch.mean(efeat, axis=0)
+        std = torch.std(efeat, axis=0)
+        norm_efeat = (efeat - mean) / std
+        g.edata.update({"feat": norm_efeat})
+        try:
+            g.ndata["PE"] = random_walk_pe(g, k)
+        except:
+            g.ndata["PE"] = random_walk_pe_cpu(g, k)
+        return g

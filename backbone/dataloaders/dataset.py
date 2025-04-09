@@ -20,13 +20,13 @@ class Dataset(data.Dataset):
         data_dir = os.path.join("graphs", self.dataset, "features")
         label_file = os.path.join("labels", self.dataset)
         self.file_list = [os.path.join(data_dir, path) for path in os.listdir(data_dir)]
-        self.label_dict = pd.read_csv(os.path.join(label_file, "labels.csv"))
+        self.label_dict = pd.read_csv(os.path.join(label_file, "label.csv"))
         with open(os.path.join(label_file, "text_embedings.pkl"), "rb") as f:
             self.text_feature = pkl.load(f)
 
         self.data_dir = data_dir
         self.label_file = label_file
-
+        self.check_files()
     def check_files(self):
         fl_train = (
             pd.read_csv(os.path.join(self.label_file, "train.txt"), header=None)
@@ -43,6 +43,7 @@ class Dataset(data.Dataset):
             .sample(frac=1)
             .values.tolist()[0]
         )
+
         if self.train == "train":
             self.path_list = fl_train
         elif self.train == "val":

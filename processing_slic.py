@@ -39,7 +39,7 @@ if not os.path.exists(feature_path):
 superpixels_path = os.path.join(config.save_dir, config.dataset, "superpixels")
 if not os.path.exists(superpixels_path):
     os.makedirs(superpixels_path)
-label = pd.read_csv(config.label_dir)
+norm = Normalizers(method=config.data_processing.normalizer, fit=config.data_processing.V)
 
 # Image Processing
 print(f"The {config.dataset} is currently being processed...")
@@ -54,9 +54,9 @@ for i, image_path in enumerate(dataset_list):
         print("Completed, skip.")
         continue
     start1 = time.time()
+    pro = processing()
     if image_type == "svs":
         slide = openslide.OpenSlide(image_path)
-        pro = processing(slide)
         # Skip the larger images
         for level, dimension in enumerate(slide.level_dimensions):
             width, height = dimension
@@ -73,7 +73,6 @@ for i, image_path in enumerate(dataset_list):
         print(level, dimension)
     elif image_type in ["tif", "tiff"]:
         slide = openslide.OpenSlide(image_path)
-        pro = processing(slide)
         # Skip the larger images
         for level, dimension in enumerate(slide.level_dimensions):
             width, height = dimension
@@ -83,14 +82,12 @@ for i, image_path in enumerate(dataset_list):
         img = np.asarray(slide.get_thumbnail(dimension))
         print(level, dimension)
     elif image_type in ["jpg", "png", "jpeg"]:
-        pro = processing()
         try:
             img = np.asarray(cv2.imread(image_path, cv2.IMREAD_COLOR)[:, :, ::-1])
         except:
             print("big!")
             continue
         print(img.shape)
-
     contours = pro.Imageotsu(
         img,
         superpixel_size=config.data_processing.superpixel_size,
@@ -100,17 +97,12 @@ for i, image_path in enumerate(dataset_list):
         img,
         contours["foreground_contours"],
     )
-    if config.data_processing.normalizer is not None:
-        norm = Normalizers(
-            method=config.data_processing.normalizer, fit=config.data_processing.V
-        )
-        img = norm.transform(img)
     end1 = time.time()
     print(f"The preprocessing has been completed and it took {end1-start1:.2f}s")
     # - contours["hole_area"]
     if os.path.exists(os.path.join(superpixels_path, image_name + "_superpixel.npy")):
         superpixel = np.load(
-            os.path.join(superpixels_path, image_name + "_superpixel.npy")
+            os.path.join(superpixels_path, image_name + "_superpixel.npy"), allow_pickle=True
         )
     else:
         superpixel = pro.Superpixel(
@@ -125,6 +117,8 @@ for i, image_path in enumerate(dataset_list):
         np.save(
             os.path.join(superpixels_path, image_name + "_superpixel.npy"), superpixel
         )
+    if config.data_processing.normalizer is not None:
+        img = norm.transform(img)
     end2 = time.time()
     print(
         f"The superpixel segmentation has been completed and it took {end2-end1:.2f}s."
@@ -145,10 +139,8 @@ for i, image_path in enumerate(dataset_list):
     )
     graph_builder = RAGGraphBuilder(device=device, add_loc_feats=True)
     graph = graph_builder.process(superpixel, features)
-    save_graphs(
-        filename=feature_save_path,
-        g_list=graph,
-    )
+    graph=pro.add_edge(graph,k=config.k)
+    save_graphs(feature_save_path,graph)
     end4 = time.time()
     print(
         f"The construction of the graph has been completed and it took {end4-end3:.2f}s, {graph.number_of_nodes()} nodes, {graph.number_of_edges()} edges."

@@ -9,13 +9,12 @@ from dgl.nn.pytorch.glob import (
     MaxPooling,
     GlobalAttentionPooling,
 )
-import dgl.nn as dglnn
 import torch.nn as nn
 from .encoder.FeatureEncoder import FeatureEncoder
-from .layer.GraphGPSLayer import GraphGPSLayer
+from .layer.GLGFILayer import GLGFILayer
 
 
-class GraphGPSModel(nn.Module):
+class GLGFIModule(nn.Module):
     def __init__(
         self,
         feature_dim,
@@ -25,7 +24,7 @@ class GraphGPSModel(nn.Module):
         hidden_size=1024,
         pos_enc_size=20,
         num_layers=10,
-        num_heads=4,
+        num_heads=8,
         dropout=0.1,
         pooling_type="avg",
         heatmap=False,
@@ -36,7 +35,7 @@ class GraphGPSModel(nn.Module):
 
         self.layers = nn.ModuleList(
             [
-                GraphGPSLayer(
+                GLGFILayer(
                     hidden_size,
                     num_heads,
                     local_gnn,

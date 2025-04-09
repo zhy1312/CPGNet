@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-
-from ogb.graphproppred.mol_encoder import AtomEncoder
 from .linear_node_encoder import LinearNodeEncoder
 
 __all__ = ["ConcatNodeEncoder"]

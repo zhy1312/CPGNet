@@ -1,6 +1,4 @@
-import dgl
 import torch
-from ogb.graphproppred.mol_encoder import BondEncoder
 from .NodeEncoder import ConcatNodeEncoder
 from .linear_edge_encoder import LinearEdgeEncoder
 

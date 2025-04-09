@@ -3,7 +3,7 @@ from pathlib2 import Path
 
 
 def load_model_path(
-    root_dir=None, name=None, version=None, v_num=None, best=False, key="acc"
+    root_dir=None, name=None, version=None, best=False, key="acc"
 ):
     def sort_by_loss(path):
         name = path.stem
@@ -28,15 +28,7 @@ def load_model_path(
         return root
     if best:
         files = [i for i in list(Path(root).iterdir()) if i.stem.startswith("best")]
-        if key == "acc":
-            files.sort(key=sort_by_acc, reverse=True)
-            res = str(files[0])
-        elif key == "loss":
-            files.sort(key=sort_by_loss, reverse=False)
-            res = str(files[0])
-        elif key == "all":
-            files.sort(key=sort_by_epoch, reverse=False)
-            res = [str(i) for i in files]
+        res = [str(i) for i in files]
     else:
         res = str(Path(root) / "last.ckpt")
     return res
@@ -47,7 +39,6 @@ def load_model_path_by_args(args):
         root_dir=args.log_dir,
         name=args.log_name,
         version=args.log_v,
-        v_num=args.load_ver,
         best=args.load_best,
         key=args.best_key,
     )

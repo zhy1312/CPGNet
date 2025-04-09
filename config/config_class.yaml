@@ -1,11 +1,11 @@
 seed: 3407
 cuda: [0]
 max_epochs: 100
-batch_size: 8
-num_workers: 8
+batch_size: 1
+num_workers: 0
 lr: 0.0001
 
-mode: train
+mode: test
 
 dataset: YNLUAD
 split: label/YNLUAD-split
@@ -13,18 +13,18 @@ label_file: label/YNLUAD_label.csv
 data_dir: graphs/YNLUAD/edata-graph
 text_file: graphs/YNLUAD/text_embedings.pkl
 
-model_name: gps_net
+model_name: cpg_net
 loss: asl 
 optimizer: adam
 weight_decay: 0.0001
 
 log_dir: logs
-log_name: parameter
-log_v: YNLUAD
+log_name: YNLUAD
+log_v: "1"
 load_best: true 
-best_key: acc
+best_key: all
 
-# lr_scheduler: 
+lr_scheduler: 
 # lr_decay_steps: 20
 # lr_decay_rate: 0.5
 # lr_decay_min_lr: 0.0001

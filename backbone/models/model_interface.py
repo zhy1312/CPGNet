@@ -39,7 +39,7 @@ class MInterface(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         *img, label, filename = batch
-        out = self(img)
+        out, heatmap_result = self(img)
         loss = self.loss_function(out, label)
         out_sig = F.sigmoid(out.detach())
         self.tra_outs.append(out_sig)
@@ -49,7 +49,7 @@ class MInterface(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         *img, label, filename = batch
-        out = self(img)
+        out, heatmap_result = self(img)
         loss = self.loss_function(out, label)
         out_sig = F.sigmoid(out.detach())
         self.val_outs.append(out_sig)
@@ -59,7 +59,7 @@ class MInterface(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         *img, label, filename = batch
-        out = self(img)
+        out, heatmap_result = self(img)
         loss = self.loss_function(out, label)
         out_sig = F.sigmoid(out.detach())
         self.test_outs.append(out_sig)
@@ -73,9 +73,7 @@ class MInterface(pl.LightningModule):
         loss = self.loss_function(out, label)
         heatmap_result["label"] = label.cpu().numpy()
         heatmap_result["out"] = out.cpu().numpy()
-        save_hdf5(
-            os.path.join(self.save_path, filename[0] + ".h5"), heatmap_result, mode="w"
-        )
+        save_hdf5(os.path.join(self.save_path,filename[0]+".h5"), heatmap_result,mode="w")
         out_sig = F.sigmoid(out.detach())
         self.test_outs.append(out_sig)
         self.test_labels.append(label)
@@ -113,7 +111,8 @@ class MInterface(pl.LightningModule):
         labels = torch.cat(self.test_labels).cpu().numpy()
         self.test_outs.clear()
         self.test_labels.clear()
-
+        np.save(os.path.join(self.save_path, "outs.npy"), outs)
+        np.save(os.path.join(self.save_path, "labels.npy"), labels)
         eval = evaluation(outs, labels)
         e = {
             "macroAP": eval[0],
@@ -129,8 +128,8 @@ class MInterface(pl.LightningModule):
         labels = torch.cat(self.test_labels).cpu().numpy()
         self.test_outs.clear()
         self.test_labels.clear()
-        # np.save(os.path.join(self.save_path, "outs.npy"), outs)
-        # np.save(os.path.join(self.save_path, "labels.npy"), labels)
+        np.save(os.path.join(self.save_path, "outs.npy"), outs)
+        np.save(os.path.join(self.save_path, "labels.npy"), labels)
 
     def configure_optimizers(self):
         if self.hparams.weight_decay is not None:

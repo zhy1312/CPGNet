@@ -25,7 +25,7 @@ def load_callbacks():
         plc.ModelCheckpoint(
             monitor="avgval",
             filename="best-{epoch:02d}-{avgval:.3f}-{val_loss:.3f}",
-            save_top_k=5,
+            save_top_k=1,
             mode="max",
             save_last=True,
         )
@@ -64,7 +64,7 @@ def main(config, fold_num=0):
             result_list.append(result)
         result_list.sort(key=lambda x: x["avg"], reverse=True)
         results = pd.DataFrame(result_list)
-        results.to_excel(f"results/{config.dataset}-{config.log_v}.xlsx", index=False)
+        results.to_excel(os.path.join(config.log_dir,config.log_name, config.log_v,"results.xlsx"), index=False)
     elif config.mode == "train":
         trainer.fit(model, data_module)
         print("Training finished!")
@@ -79,7 +79,7 @@ def main(config, fold_num=0):
             result_list.append(result)
         result_list.sort(key=lambda x: x["avg"], reverse=True)
         results = pd.DataFrame(result_list)
-        results.to_excel(f"results/{config.dataset}-{config.log_v}.xlsx", index=False)
+        results.to_excel(os.path.join(config.log_dir,config.log_name, config.log_v,"results.xlsx"), index=False)
     elif config.mode == "predict":
         print("Predicting...")
         load_paths = load_model_path_by_args(config)
